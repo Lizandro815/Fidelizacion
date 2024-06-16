@@ -8,10 +8,18 @@ function getPremios() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function agregarPremio($nombre_premio, $descripcion, $puntos_necesarios, $cantidad_disponible) {
+function searchPremios($search) {
     global $conn;
-    $stmt = $conn->prepare("INSERT INTO Premios (nombre_premio, descripcion, puntos_necesarios, cantidad_disponible) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$nombre_premio, $descripcion, $puntos_necesarios, $cantidad_disponible]);
+    $stmt = $conn->prepare("SELECT * FROM Premios WHERE nombre_premio LIKE ?");
+    $search = "%$search%";
+    $stmt->execute([$search]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function agregarPremio($nombre_premio, $descripcion, $puntos_necesarios, $cantidad_disponible, $imagen) {
+    global $conn;
+    $stmt = $conn->prepare("INSERT INTO Premios (nombre_premio, descripcion, puntos_necesarios, cantidad_disponible, imagen) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$nombre_premio, $descripcion, $puntos_necesarios, $cantidad_disponible, $imagen]);
 }
 
 function eliminarPremio($id_premio) {
@@ -20,10 +28,10 @@ function eliminarPremio($id_premio) {
     $stmt->execute([$id_premio]);
 }
 
-function actualizarPremio($id_premio, $nombre_premio, $descripcion, $puntos_necesarios, $cantidad_disponible) {
+function actualizarPremio($id_premio, $nombre_premio, $descripcion, $puntos_necesarios, $cantidad_disponible, $imagen) {
     global $conn;
-    $stmt = $conn->prepare("UPDATE Premios SET nombre_premio = ?, descripcion = ?, puntos_necesarios = ?, cantidad_disponible = ? WHERE id_premio = ?");
-    $stmt->execute([$nombre_premio, $descripcion, $puntos_necesarios, $cantidad_disponible, $id_premio]);
+    $stmt = $conn->prepare("UPDATE Premios SET nombre_premio = ?, descripcion = ?, puntos_necesarios = ?, cantidad_disponible = ?, imagen = ? WHERE id_premio = ?");
+    $stmt->execute([$nombre_premio, $descripcion, $puntos_necesarios, $cantidad_disponible, $imagen, $id_premio]);
 }
 
 function obtenerPremio($id_premio) {
@@ -33,34 +41,42 @@ function obtenerPremio($id_premio) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function canjearPremio($id_premio, $id_cliente) {
+function canjearPremio($id_premio, $id_cliente, $puntos_necesarios) {
     global $conn;
-    $conn->beginTransaction();
+    try {
+        $conn->beginTransaction();
 
-    // Obtener información del premio
-    $stmt = $conn->prepare("SELECT * FROM Premios WHERE id_premio = ?");
-    $stmt->execute([$id_premio]);
-    $premio = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($premio && $premio['cantidad_disponible'] > 0) {
-        // Reducir cantidad disponible del premio
-        $stmt = $conn->prepare("UPDATE Premios SET cantidad_disponible = cantidad_disponible - 1 WHERE id_premio = ?");
+        // Restar la cantidad de premios disponibles
+        $stmt = $conn->prepare("UPDATE Premios SET cantidad_disponible = cantidad_disponible - 1 WHERE id_premio = ? AND cantidad_disponible > 0");
         $stmt->execute([$id_premio]);
 
-        // Obtener puntos del cliente
-        $stmt = $conn->prepare("SELECT puntos FROM Clientes WHERE id_cliente = ?");
-        $stmt->execute([$id_cliente]);
-        $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($stmt->rowCount() == 0) {
+            throw new Exception("No hay suficientes premios disponibles.");
+        }
 
-        // Restar puntos del cliente
-        $stmt = $conn->prepare("UPDATE Clientes SET puntos = puntos - ? WHERE id_cliente = ?");
-        $stmt->execute([$premio['puntos_necesarios'], $id_cliente]);
+        // Restar los puntos del cliente
+        $stmt = $conn->prepare("UPDATE Clientes SET puntos = puntos - ? WHERE id_cliente = ? AND puntos >= ?");
+        $stmt->execute([$puntos_necesarios, $id_cliente, $puntos_necesarios]);
+
+        if ($stmt->rowCount() == 0) {
+            throw new Exception("No hay suficientes puntos en la cuenta del cliente.");
+        }
+
+        // Registrar el canje en la tabla Canjes
+        $stmt = $conn->prepare("INSERT INTO Canjes (id_premio, id_cliente) VALUES (?, ?)");
+        $stmt->execute([$id_premio, $id_cliente]);
 
         $conn->commit();
         return true;
-    } else {
+    } catch (Exception $e) {
         $conn->rollBack();
         return false;
     }
+}
+
+function getCanjesUltimos30Dias() {
+    global $conn;
+    $stmt = $conn->query("SELECT DATE(fecha) as fecha, COUNT(*) as total FROM Canjes WHERE fecha >= CURDATE() - INTERVAL 30 DAY GROUP BY DATE(fecha)");
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>

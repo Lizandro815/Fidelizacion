@@ -7,7 +7,14 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['rol'] != 'admin') {
 }
 
 include '../src/controllers/PremioController.php';
-$premios = getPremios();
+
+$search = '';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $search = $_POST['search'];
+    $premios = searchPremios($search);
+} else {
+    $premios = getPremios();
+}
 ?>
 
 <!DOCTYPE html>
@@ -20,12 +27,18 @@ $premios = getPremios();
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    
     <div class="container">
         <h1 class="my-4">Premios</h1>
-        <a href="agregar_premio.php" class="btn btn-primary mb-3">Agregar Premio</a>
+        <form action="premios.php" method="post" class="form-inline mb-3">
+            <input type="text" class="form-control mr-sm-2" name="search" placeholder="Buscar por Nombre" value="<?= htmlspecialchars($search) ?>">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <a href="agregar_premio.php" class="btn btn-primary ml-3">Agregar Premio</a>
+        </form>
         <table class="table table-striped">
             <thead>
                 <tr>
+                    <th>Imagen</th>
                     <th>Nombre del Premio</th>
                     <th>Descripción</th>
                     <th>Puntos Necesarios</th>
@@ -36,6 +49,7 @@ $premios = getPremios();
             <tbody>
                 <?php foreach ($premios as $premio): ?>
                 <tr>
+                    <td><img src="<?= "http://localhost/" . htmlspecialchars($premio['imagen']) ?>" alt="Imagen del Premio" style="width: 100px;"></td>
                     <td><?= htmlspecialchars($premio['nombre_premio']) ?></td>
                     <td><?= htmlspecialchars($premio['descripcion']) ?></td>
                     <td><?= htmlspecialchars($premio['puntos_necesarios']) ?></td>

@@ -7,7 +7,14 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['rol'] != 'admin') {
 }
 
 include '../src/controllers/ClienteController.php';
-$clientes = getClientes();
+
+$search = '';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $search = $_POST['search'];
+    $clientes = searchClientes($search);
+} else {
+    $clientes = getClientes();
+}
 ?>
 
 <!DOCTYPE html>
@@ -22,7 +29,11 @@ $clientes = getClientes();
 <body>
     <div class="container">
         <h1 class="my-4">Clientes</h1>
-        <a href="agregar_cliente.php" class="btn btn-primary mb-3">Agregar Cliente</a>
+        <form action="clientes.php" method="post" class="form-inline mb-3">
+            <input type="text" class="form-control mr-sm-2" name="search" placeholder="Buscar por Teléfono o Nombre" value="<?= htmlspecialchars($search) ?>">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <a href="agregar_cliente.php" class="btn btn-primary ml-3">Agregar Cliente</a>
+        </form>
         <table class="table table-striped">
             <thead>
                 <tr>

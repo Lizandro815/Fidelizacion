@@ -8,6 +8,8 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['rol'] != 'admin') {
 
 include '../src/controllers/ClienteController.php';
 
+$error = '';
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $telefono_movil = $_POST['telefono_movil'];
     $nombre = $_POST['nombre'];
@@ -18,9 +20,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $ciudad = $_POST['ciudad'];
     $contrasena = password_hash($_POST['contrasena'], PASSWORD_BCRYPT);
 
-    agregarCliente($telefono_movil, $nombre, $apellidos, $direccion, $correo_electronico, $estado, $ciudad, $contrasena);
-    header("Location: clientes.php");
-    exit();
+    try {
+        agregarCliente($telefono_movil, $nombre, $apellidos, $direccion, $correo_electronico, $estado, $ciudad, $contrasena);
+        header("Location: clientes.php");
+        exit();
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+    }
 }
 ?>
 
@@ -36,6 +42,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
     <div class="container">
         <h1 class="my-4">Agregar Cliente</h1>
+        <?php if ($error): ?>
+            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
         <form action="agregar_cliente.php" method="post">
             <div class="form-group">
                 <label for="telefono_movil">Teléfono Móvil:</label>

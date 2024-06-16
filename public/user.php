@@ -10,9 +10,10 @@ include '../src/controllers/ClienteController.php';
 include '../src/controllers/PremioController.php';
 include '../src/controllers/BeneficioController.php';
 
-$cliente = obtenerCliente($_SESSION['id_cliente']);
+$cliente = obtenerClientePorTelefono($_SESSION['telefono_movil']);
 $premios = getPremios();
 $beneficios = getBeneficios();
+$mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
 ?>
 
 <!DOCTYPE html>
@@ -23,11 +24,107 @@ $beneficios = getBeneficios();
     <title>Mis Puntos</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            background-color: var(--bg-color, #ffffff); /* Default white */
+        }
+        .card-img-top {
+            height: 200px;
+            object-fit: fill;
+        }
+        .card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-body {
+            flex: 1;
+        }
+        .beneficio-card {
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            height: 250px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .beneficio-card .card-body {
+            background: rgba(0, 0, 0, 0.5);
+            width: 100%;
+            text-align: center;
+        }
+        .gold-card {
+            background: linear-gradient(45deg, #d4af37, #ffd700);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .gold-card h5 {
+            margin: 10px 0;
+        }
+        .content-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .content-column {
+            flex: 1;
+            margin-right: 20px;
+        }
+        .content-column:last-child {
+            margin-right: 0;
+        }
+        .color-picker {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .theme-color {
+            background-color: var(--theme-color, #ffffff) !important;
+        }
+        .theme-input {
+            border-color: var(--theme-color, #ffffff) !important;
+        }
+    </style>
 </head>
 <body>
+    <div class="color-picker">
+        <label for="colorSelect">Tema:</label>
+        <select id="colorSelect" class="form-control">
+            <option value="#ffffff">Blanco</option>
+            <option value="#f5f5dc">Beige</option>
+            <option value="#e0f7fa">Cyan claro</option>
+            <option value="#ffebee">Rosa claro</option>
+            <option value="#e8f5e9">Verde claro</option>
+        </select>
+    </div>
+
     <div class="container">
-        <h1 class="my-4">Bienvenido, <?= htmlspecialchars($cliente['nombre']) ?></h1>
-        <p>Tus puntos: <?= htmlspecialchars($cliente['puntos']) ?></p>
+        <h1 class="my-4">Bienvenido a tu cuenta, <?= htmlspecialchars($cliente['nombre']) ?></h1>
+
+        <div class="content-row">
+            <div class="content-column">
+                <div class="gold-card">
+                    <h5>MEGACARD CLUB</h5>
+                    <p>Tarjeta <?= htmlspecialchars($cliente['numero_tarjeta']) ?></p>
+                </div>
+            </div>
+            <div class="content-column">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Puntos Acumulados</h5>
+                        <p class="card-text"><?= htmlspecialchars($cliente['puntos']) ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php if ($mensaje): ?>
+        <div class="alert alert-info"><?= htmlspecialchars($mensaje) ?></div>
+        <?php endif; ?>
 
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
@@ -40,10 +137,12 @@ $beneficios = getBeneficios();
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="premios" role="tabpanel" aria-labelledby="premios-tab">
                 <h2 class="my-4">Premios Disponibles</h2>
-                <div class="row">
+                <input type="text" id="buscarPremios" class="form-control mb-4" placeholder="Buscar premios por nombre...">
+                <div class="row" id="listaPremios">
                     <?php foreach ($premios as $premio): ?>
-                    <div class="col-md-4">
-                        <div class="card mb-4">
+                    <div class="col-md-4 premio-item">
+                        <div class="card mb-4 theme-color">
+                            <img src="<?= "http://localhost/" . htmlspecialchars($premio['imagen']) ?>" class="card-img-top" alt="Imagen del Premio">
                             <div class="card-body">
                                 <h5 class="card-title"><?= htmlspecialchars($premio['nombre_premio']) ?></h5>
                                 <p class="card-text"><?= htmlspecialchars($premio['descripcion']) ?></p>
@@ -65,23 +164,13 @@ $beneficios = getBeneficios();
             </div>
             <div class="tab-pane fade" id="beneficios" role="tabpanel" aria-labelledby="beneficios-tab">
                 <h2 class="my-4">Beneficios Disponibles</h2>
-                <div class="row">
+                <input type="text" id="buscarBeneficios" class="form-control mb-4" placeholder="Buscar beneficios por nombre...">
+                <div class="row" id="listaBeneficios">
                     <?php foreach ($beneficios as $beneficio): ?>
-                    <div class="col-md-4">
-                        <div class="card mb-4">
+                    <div class="col-md-4 beneficio-item">
+                        <div class="card mb-4 beneficio-card" style="background-image: url('http://localhost/<?= htmlspecialchars($beneficio['imagen']) ?>');">
                             <div class="card-body">
                                 <h5 class="card-title"><?= htmlspecialchars($beneficio['nombre_empresa']) ?></h5>
-                                <p class="card-text"><?= htmlspecialchars($beneficio['descripcion']) ?></p>
-                                <p class="card-text">Puntos necesarios: <?= htmlspecialchars($beneficio['puntos_necesarios']) ?></p>
-                                <?php if ($beneficio['cantidad_disponible'] > 0): ?>
-                                    <?php if ($cliente['puntos'] >= $beneficio['puntos_necesarios']): ?>
-                                    <button class="btn btn-primary" data-toggle="modal" data-target="#canjearBeneficioModal" data-id="<?= $beneficio['id_beneficio'] ?>" data-nombre="<?= htmlspecialchars($beneficio['nombre_empresa']) ?>" data-puntos="<?= $beneficio['puntos_necesarios'] ?>">Canjear</button>
-                                    <?php else: ?>
-                                    <button class="btn btn-secondary" disabled>No alcanza</button>
-                                    <?php endif; ?>
-                                <?php else: ?>
-                                <button class="btn btn-secondary" disabled>Agotado</button>
-                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -113,31 +202,42 @@ $beneficios = getBeneficios();
         </div>
     </div>
 
-    <!-- Modal para Canjear Beneficio -->
-    <div class="modal fade" id="canjearBeneficioModal" tabindex="-1" aria-labelledby="canjearBeneficioModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="canjearBeneficioModalLabel">Canjear Beneficio</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>¿Estás seguro de que deseas canjear <strong id="beneficioNombre"></strong> por <strong id="beneficioPuntos"></strong> puntos?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="confirmarCanjeBeneficio">Canjear</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
+        // Change background color based on user selection
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const storedColor = localStorage.getItem('bgColor');
+            if (storedColor) {
+                document.body.style.backgroundColor = storedColor;
+                document.documentElement.style.setProperty('--bg-color', storedColor);
+                document.documentElement.style.setProperty('--theme-color', storedColor !== '#ffffff' ? storedColor : '#ffffff');
+                document.getElementById('colorSelect').value = storedColor;
+                toggleThemeClasses(storedColor !== '#ffffff');
+            }
+
+            document.getElementById('colorSelect').addEventListener('change', function() {
+                const selectedColor = this.value;
+                document.body.style.backgroundColor = selectedColor;
+                document.documentElement.style.setProperty('--bg-color', selectedColor);
+                document.documentElement.style.setProperty('--theme-color', selectedColor !== '#ffffff' ? selectedColor : '#ffffff');
+                localStorage.setItem('bgColor', selectedColor);
+                toggleThemeClasses(selectedColor !== '#ffffff');
+            });
+        });
+
+        function toggleThemeClasses(apply) {
+            const elements = document.querySelectorAll('.theme-color, .theme-input');
+            elements.forEach(element => {
+                if (apply) {
+                    element.classList.add('theme-applied');
+                } else {
+                    element.classList.remove('theme-applied');
+                }
+            });
+        }
+
         $('#canjearModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
             var id = button.data('id');
@@ -157,23 +257,20 @@ $beneficios = getBeneficios();
             window.location.href = 'canjear_premio.php?id=' + id + '&puntos=' + puntos;
         });
 
-        $('#canjearBeneficioModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var id = button.data('id');
-            var nombre = button.data('nombre');
-            var puntos = button.data('puntos');
-
-            var modal = $(this);
-            modal.find('#beneficioNombre').text(nombre);
-            modal.find('#beneficioPuntos').text(puntos);
-            modal.find('#confirmarCanjeBeneficio').data('id', id);
-            modal.find('#confirmarCanjeBeneficio').data('puntos', puntos);
+        // Búsqueda en premios
+        $('#buscarPremios').on('keyup', function () {
+            var value = $(this).val().toLowerCase();
+            $('#listaPremios .premio-item').filter(function () {
+                $(this).toggle($(this).find('.card-title').text().toLowerCase().indexOf(value) > -1)
+            });
         });
 
-        $('#confirmarCanjeBeneficio').on('click', function () {
-            var id = $(this).data('id');
-            var puntos = $(this).data('puntos');
-            window.location.href = 'canjear_beneficio.php?id=' + id + '&puntos=' + puntos;
+        // Búsqueda en beneficios
+        $('#buscarBeneficios').on('keyup', function () {
+            var value = $(this).val().toLowerCase();
+            $('#listaBeneficios .beneficio-item').filter(function () {
+                $(this).toggle($(this).find('.card-title').text().toLowerCase().indexOf(value) > -1)
+            });
         });
     </script>
 </body>
