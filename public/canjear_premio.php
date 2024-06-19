@@ -8,23 +8,52 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['rol'] != 'cliente') {
 
 include '../src/controllers/PremioController.php';
 include '../src/controllers/ClienteController.php';
+require '../src/config/config_mailer.php';
 
 $id_premio = $_GET['id'];
-$id_cliente = $_SESSION['telefono_movil'];
 
-$cliente = obtenerClientePorTelefono($id_cliente);
-
+$cliente = obtenerClientePorTelefono($_SESSION['telefono_movil']);
+$id_cliente = $cliente['id_cliente'];
+try {
 if (canjearPremio($id_premio, $cliente['id_cliente'])) {
     $mensaje = "¡Felicitaciones! Has canjeado el premio con éxito. Presenta el siguiente codigo en nuestra sucursal para poder entregarte el premio";
-    $imagen = "./images/QR.png"; // Cambia esta ruta a la imagen que desees usar
+    $imagen = "./images/QR.png";
+    //datos del cliente
+    $nombre_user = $cliente['nombre'];
+    $apellidos_user = $cliente['apellidos'];
+    $nombre_comp = $nombre_user . ' ' . $apellidos_user;
+
+    //datos del premio
+    $row = obtenerPremio($id_premio);
+    $nomPremio = $row['nombre_premio'];
+
+    //envio de correo electronico 
+    require '../src/controllers/mailer.php';
+    $email = "saulmore1023@gmail.com";
+    $asunto = "Cambio de premio";
+    $cuerpo = '<h3>CAMBIO DE PREMIO</h3>';
+    $cuerpo .= '<p>El usuario <b>' . $nombre_comp . '</b> ha relizado un cambio de puntos</p>';
+    $cuerpo .= '<p>por el premio <b>' . $nomPremio . '</b></p>';
+
+    $mailer = new Mailer();
+    $mailer->enviarEmail($email, $asunto, $cuerpo);
+
+    //regitrar el canje cliente-premio
+    $fecha = date('Y-m-d H:i:s');//obtiene fecha actual formateado
+    registrarCanjes($cliente['id_cliente'], $id_premio, $fecha);
 } else {
     $mensaje = "Lo sentimos, no se pudo canjear el premio. Inténtalo nuevamente.";
     $imagen = "./images/no.png"; // Cambia esta ruta a la imagen que desees usar
+}
+} catch (Exception $e) {
+    $mensaje = "Ocurrio un error. Inténtalo nuevamente.";
+    $imagen = "images/no.png";
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,6 +61,7 @@ if (canjearPremio($id_premio, $cliente['id_cliente'])) {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
     <div class="container text-center">
         <h1 class="my-4">Canjear Premio</h1>
@@ -45,4 +75,5 @@ if (canjearPremio($id_premio, $cliente['id_cliente'])) {
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
+
 </html>

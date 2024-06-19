@@ -13,10 +13,12 @@ include '../src/controllers/BeneficioController.php';
 $cliente = obtenerCliente($_SESSION['id_cliente']);
 $premios = getPremios();
 $beneficios = getBeneficios();
+$canjes = obtenerCanjesCliente($_SESSION['id_cliente']);
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,8 +26,9 @@ $beneficios = getBeneficios();
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
-    <div class="container">
+    <div class="container my-4">
         <h1 class="my-4">Bienvenido, <?= htmlspecialchars($cliente['nombre']) ?></h1>
         <p>Tus puntos: <?= htmlspecialchars($cliente['puntos']) ?></p>
 
@@ -36,58 +39,92 @@ $beneficios = getBeneficios();
             <li class="nav-item">
                 <a class="nav-link" id="beneficios-tab" data-toggle="tab" href="#beneficios" role="tab" aria-controls="beneficios" aria-selected="false">Beneficios</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="canjes-tab" data-toggle="tab" href="#canjes" role="tab" aria-controls="canjes" aria-selected="false">Historial de canjes</a>
+            </li>
         </ul>
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="premios" role="tabpanel" aria-labelledby="premios-tab">
                 <h2 class="my-4">Premios Disponibles</h2>
                 <div class="row">
-                    <?php foreach ($premios as $premio): ?>
-                    <div class="col-md-4">
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title"><?= htmlspecialchars($premio['nombre_premio']) ?></h5>
-                                <p class="card-text"><?= htmlspecialchars($premio['descripcion']) ?></p>
-                                <p class="card-text">Puntos necesarios: <?= htmlspecialchars($premio['puntos_necesarios']) ?></p>
-                                <?php if ($premio['cantidad_disponible'] > 0): ?>
-                                    <?php if ($cliente['puntos'] >= $premio['puntos_necesarios']): ?>
-                                    <button class="btn btn-primary" data-toggle="modal" data-target="#canjearModal" data-id="<?= $premio['id_premio'] ?>" data-nombre="<?= htmlspecialchars($premio['nombre_premio']) ?>" data-puntos="<?= $premio['puntos_necesarios'] ?>">Canjear</button>
-                                    <?php else: ?>
-                                    <button class="btn btn-secondary" disabled>No alcanza</button>
+                    <?php foreach ($premios as $premio) : ?>
+                        <div class="col-md-4">
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?= htmlspecialchars($premio['nombre_premio']) ?></h5>
+                                    <p class="card-text"><?= htmlspecialchars($premio['descripcion']) ?></p>
+                                    <p class="card-text">Puntos necesarios: <?= htmlspecialchars($premio['puntos_necesarios']) ?></p>
+                                    <?php if ($premio['cantidad_disponible'] > 0) : ?>
+                                        <?php if ($cliente['puntos'] >= $premio['puntos_necesarios']) : ?>
+                                            <button class="btn btn-primary" data-toggle="modal" data-target="#canjearModal" data-id="<?= $premio['id_premio'] ?>" data-nombre="<?= htmlspecialchars($premio['nombre_premio']) ?>" data-puntos="<?= $premio['puntos_necesarios'] ?>">Canjear</button>
+                                        <?php else : ?>
+                                            <button class="btn btn-secondary" disabled>No alcanza</button>
+                                        <?php endif; ?>
+                                    <?php else : ?>
+                                        <button class="btn btn-secondary" disabled>Agotado</button>
                                     <?php endif; ?>
-                                <?php else: ?>
-                                <button class="btn btn-secondary" disabled>Agotado</button>
-                                <?php endif; ?>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     <?php endforeach; ?>
                 </div>
             </div>
             <div class="tab-pane fade" id="beneficios" role="tabpanel" aria-labelledby="beneficios-tab">
                 <h2 class="my-4">Beneficios Disponibles</h2>
                 <div class="row">
-                    <?php foreach ($beneficios as $beneficio): ?>
-                    <div class="col-md-4">
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title"><?= htmlspecialchars($beneficio['nombre_empresa']) ?></h5>
-                                <p class="card-text"><?= htmlspecialchars($beneficio['descripcion']) ?></p>
-                                <p class="card-text">Puntos necesarios: <?= htmlspecialchars($beneficio['puntos_necesarios']) ?></p>
-                                <?php if ($beneficio['cantidad_disponible'] > 0): ?>
-                                    <?php if ($cliente['puntos'] >= $beneficio['puntos_necesarios']): ?>
-                                    <button class="btn btn-primary" data-toggle="modal" data-target="#canjearBeneficioModal" data-id="<?= $beneficio['id_beneficio'] ?>" data-nombre="<?= htmlspecialchars($beneficio['nombre_empresa']) ?>" data-puntos="<?= $beneficio['puntos_necesarios'] ?>">Canjear</button>
-                                    <?php else: ?>
-                                    <button class="btn btn-secondary" disabled>No alcanza</button>
+                    <?php foreach ($beneficios as $beneficio) : ?>
+                        <div class="col-md-4">
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?= htmlspecialchars($beneficio['nombre_empresa']) ?></h5>
+                                    <p class="card-text"><?= htmlspecialchars($beneficio['descripcion']) ?></p>
+                                    <p class="card-text">Puntos necesarios: <?= htmlspecialchars($beneficio['puntos_necesarios']) ?></p>
+                                    <?php if ($beneficio['cantidad_disponible'] > 0) : ?>
+                                        <?php if ($cliente['puntos'] >= $beneficio['puntos_necesarios']) : ?>
+                                            <button class="btn btn-primary" data-toggle="modal" data-target="#canjearBeneficioModal" data-id="<?= $beneficio['id_beneficio'] ?>" data-nombre="<?= htmlspecialchars($beneficio['nombre_empresa']) ?>" data-puntos="<?= $beneficio['puntos_necesarios'] ?>">Canjear</button>
+                                        <?php else : ?>
+                                            <button class="btn btn-secondary" disabled>No alcanza</button>
+                                        <?php endif; ?>
+                                    <?php else : ?>
+                                        <button class="btn btn-secondary" disabled>Agotado</button>
                                     <?php endif; ?>
-                                <?php else: ?>
-                                <button class="btn btn-secondary" disabled>Agotado</button>
-                                <?php endif; ?>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     <?php endforeach; ?>
                 </div>
             </div>
+            <!----- CANJES ------->
+            <div class="tab-pane fade" id="canjes" role="tabpanel" aria-labelledby="canjes-tab">
+                <h2 class="my-4">Historial de canjes</h2>
+                <div class="row">
+                    <div class="col-12">
+                        <?php if (empty($canjes)) : ?>
+                            <div class="alert alert-danger" role="alert">
+                                No tienes premios canjeados.
+                            </div>
+                        <?php else : ?>
+                            <table id="canjesTable" class="table table-striped table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Premio</th>
+                                        <th>Fecha de Canje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($canjes as $canje) : ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($canje['nombre_premio']); ?></td>
+                                            <td><?php echo htmlspecialchars($canje['fecha_canje']); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
         </div>
         <a href="logout.php" class="btn btn-danger mt-4">Cerrar Sesión</a>
     </div>
@@ -137,8 +174,24 @@ $beneficios = getBeneficios();
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
     <script>
-        $('#canjearModal').on('show.bs.modal', function (event) {
+        $(document).ready(function() {
+            $('#canjesTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json"
+                }
+            });
+        });
+    </script>
+    <script>
+        $('#canjearModal').on('show.bs.modal', function(event) {
             var button = $(event.relatedTarget);
             var id = button.data('id');
             var nombre = button.data('nombre');
@@ -151,13 +204,13 @@ $beneficios = getBeneficios();
             modal.find('#confirmarCanje').data('puntos', puntos);
         });
 
-        $('#confirmarCanje').on('click', function () {
+        $('#confirmarCanje').on('click', function() {
             var id = $(this).data('id');
             var puntos = $(this).data('puntos');
             window.location.href = 'canjear_premio.php?id=' + id + '&puntos=' + puntos;
         });
 
-        $('#canjearBeneficioModal').on('show.bs.modal', function (event) {
+        $('#canjearBeneficioModal').on('show.bs.modal', function(event) {
             var button = $(event.relatedTarget);
             var id = button.data('id');
             var nombre = button.data('nombre');
@@ -170,11 +223,12 @@ $beneficios = getBeneficios();
             modal.find('#confirmarCanjeBeneficio').data('puntos', puntos);
         });
 
-        $('#confirmarCanjeBeneficio').on('click', function () {
+        $('#confirmarCanjeBeneficio').on('click', function() {
             var id = $(this).data('id');
             var puntos = $(this).data('puntos');
             window.location.href = 'canjear_beneficio.php?id=' + id + '&puntos=' + puntos;
         });
     </script>
 </body>
+
 </html>

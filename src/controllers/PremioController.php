@@ -63,4 +63,39 @@ function canjearPremio($id_premio, $id_cliente) {
         return false;
     }
 }
+
+//registra premios-cleinte canjeados 
+function registrarCanjes($id_cliente, $id_premio, $fecha){
+    // Obtener la fecha actual
+    global $conn;
+    $stmt = $conn->prepare("INSERT INTO canjes (id_cliente, id_premio, fecha_canje) VALUES (?, ?,?)");
+    $stmt->execute([$id_cliente, $id_premio, $fecha]);
+}
+
+//obtiene todos los canjes hecho por el cliente
+function obtenerCanjesCliente($id_cliente) {
+    global $conn;
+    $stmt = $conn->prepare("
+        SELECT c.id_cliente, c.id_premio, c.fecha_canje, p.nombre_premio
+        FROM canjes c
+        JOIN premios p ON c.id_premio = p.id_premio
+        WHERE c.id_cliente = ?
+    ");
+    $stmt->execute([$id_cliente]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+function obtenerCanjesAdmin() {
+    global $conn;
+    $stmt = $conn->prepare("
+        SELECT c.id_cliente, cl.nombre, cl.apellidos, c.id_premio, p.nombre_premio, c.fecha_canje
+        FROM canjes c
+        JOIN premios p ON c.id_premio = p.id_premio
+        JOIN clientes cl ON c.id_cliente = cl.id_cliente
+    ");
+    $stmt->execute([]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+
 ?>

@@ -41,6 +41,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['rol'] != 'admin') {
         <p><a href="clientes.php" class="btn btn-primary">Gestionar Clientes</a></p>
         <p><a href="premios.php" class="btn btn-primary">Gestionar Premios</a></p>
         <p><a href="beneficios.php" class="btn btn-primary">Gestionar Beneficios</a></p>
+        <p><a href="canjes.php" class="btn btn-primary">Historial de canjes</a></p>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
