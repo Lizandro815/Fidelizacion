@@ -22,8 +22,9 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Puntos</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
             background-color: var(--bg-color, #ffffff); /* Default white */
@@ -59,7 +60,7 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
             background: linear-gradient(45deg, #d4af37, #ffd700);
             color: white;
             text-align: center;
-            padding: 20px;
+            padding: 40px; /* Increased padding for larger height */
             border-radius: 10px;
         }
         .gold-card h5 {
@@ -88,21 +89,44 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
         .theme-input {
             border-color: var(--theme-color, #ffffff) !important;
         }
+        .logout-icon {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        .dropdown-menu {
+            left: 0;
+            right: auto;
+        }
+        .footer-space {
+            margin-bottom: 60px; /* Adjust the height according to your footer height */
+        }
     </style>
 </head>
 <body>
-    <div class="color-picker">
-        <label for="colorSelect">Tema:</label>
-        <select id="colorSelect" class="form-control">
-            <option value="#ffffff">Blanco</option>
-            <option value="#f5f5dc">Beige</option>
-            <option value="#e0f7fa">Cyan claro</option>
-            <option value="#ffebee">Rosa claro</option>
-            <option value="#e8f5e9">Verde claro</option>
-        </select>
+    <div class="color-picker dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownThemeButton" data-bs-toggle="dropdown" aria-expanded="false">
+            Tema
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownThemeButton">
+            <li><a class="dropdown-item" href="#" data-color="#ffffff">Blanco</a></li>
+            <li><a class="dropdown-item" href="#" data-color="#f5f5dc">Beige</a></li>
+            <li><a class="dropdown-item" href="#" data-color="#e0f7fa">Cyan claro</a></li>
+            <li><a class="dropdown-item" href="#" data-color="#ffebee">Rosa claro</a></li>
+            <li><a class="dropdown-item" href="#" data-color="#e8f5e9">Verde claro</a></li>
+        </ul>
     </div>
 
     <div class="container">
+        <div class="logout-icon dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Cerrar Sesión</a></li>
+            </ul>
+        </div>
+
         <h1 class="my-4">Bienvenido a tu cuenta, <?= htmlspecialchars($cliente['nombre']) ?></h1>
 
         <div class="content-row">
@@ -113,7 +137,7 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
                 </div>
             </div>
             <div class="content-column">
-                <div class="card">
+                <div class="card" style="padding: 40px;"> <!-- Increased padding for larger height -->
                     <div class="card-body text-center">
                         <h5 class="card-title">Puntos Acumulados</h5>
                         <p class="card-text"><?= htmlspecialchars($cliente['puntos']) ?></p>
@@ -128,10 +152,10 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
 
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active" id="premios-tab" data-toggle="tab" href="#premios" role="tab" aria-controls="premios" aria-selected="true">Premios</a>
+                <a class="nav-link active" id="premios-tab" data-bs-toggle="tab" href="#premios" role="tab" aria-controls="premios" aria-selected="true">Premios</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="beneficios-tab" data-toggle="tab" href="#beneficios" role="tab" aria-controls="beneficios" aria-selected="false">Beneficios</a>
+                <a class="nav-link" id="beneficios-tab" data-bs-toggle="tab" href="#beneficios" role="tab" aria-controls="beneficios" aria-selected="false">Beneficios</a>
             </li>
         </ul>
         <div class="tab-content" id="myTabContent">
@@ -149,7 +173,7 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
                                 <p class="card-text">Puntos necesarios: <?= htmlspecialchars($premio['puntos_necesarios']) ?></p>
                                 <?php if ($premio['cantidad_disponible'] > 0): ?>
                                     <?php if ($cliente['puntos'] >= $premio['puntos_necesarios']): ?>
-                                    <button class="btn btn-primary" data-toggle="modal" data-target="#canjearModal" data-id="<?= $premio['id_premio'] ?>" data-nombre="<?= htmlspecialchars($premio['nombre_premio']) ?>" data-puntos="<?= $premio['puntos_necesarios'] ?>">Canjear</button>
+                                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#canjearModal" data-id="<?= $premio['id_premio'] ?>" data-nombre="<?= htmlspecialchars($premio['nombre_premio']) ?>" data-puntos="<?= $premio['puntos_necesarios'] ?>">Canjear</button>
                                     <?php else: ?>
                                     <button class="btn btn-secondary" disabled>No alcanza</button>
                                     <?php endif; ?>
@@ -178,7 +202,7 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
                 </div>
             </div>
         </div>
-        <a href="logout.php" class="btn btn-danger mt-4">Cerrar Sesión</a>
+        <div class="footer-space"></div> <!-- Spacer for the footer -->
     </div>
 
     <!-- Modal para Canjear Premio -->
@@ -187,24 +211,60 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="canjearModalLabel">Canjear Premio</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <p>¿Estás seguro de que deseas canjear <strong id="premioNombre"></strong> por <strong id="premioPuntos"></strong> puntos?</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" id="confirmarCanje">Canjear</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Modal para Canjear Beneficio -->
+    <div class="modal fade" id="canjearBeneficioModal" tabindex="-1" aria-labelledby="canjearBeneficioModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="canjearBeneficioModalLabel">Canjear Beneficio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas canjear <strong id="beneficioNombre"></strong> por <strong id="beneficioPuntos"></strong> puntos?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmarCanjeBeneficio">Canjear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Confirmar Cierre de Sesión -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">Confirmar Cierre de Sesión</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas cerrar la sesión?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <a href="logout.php" class="btn btn-danger">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script>
         // Change background color based on user selection
         document.addEventListener('DOMContentLoaded', (event) => {
@@ -213,17 +273,18 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
                 document.body.style.backgroundColor = storedColor;
                 document.documentElement.style.setProperty('--bg-color', storedColor);
                 document.documentElement.style.setProperty('--theme-color', storedColor !== '#ffffff' ? storedColor : '#ffffff');
-                document.getElementById('colorSelect').value = storedColor;
                 toggleThemeClasses(storedColor !== '#ffffff');
             }
 
-            document.getElementById('colorSelect').addEventListener('change', function() {
-                const selectedColor = this.value;
-                document.body.style.backgroundColor = selectedColor;
-                document.documentElement.style.setProperty('--bg-color', selectedColor);
-                document.documentElement.style.setProperty('--theme-color', selectedColor !== '#ffffff' ? selectedColor : '#ffffff');
-                localStorage.setItem('bgColor', selectedColor);
-                toggleThemeClasses(selectedColor !== '#ffffff');
+            document.querySelectorAll('.dropdown-item[data-color]').forEach(item => {
+                item.addEventListener('click', function() {
+                    const selectedColor = this.getAttribute('data-color');
+                    document.body.style.backgroundColor = selectedColor;
+                    document.documentElement.style.setProperty('--bg-color', selectedColor);
+                    document.documentElement.style.setProperty('--theme-color', selectedColor !== '#ffffff' ? selectedColor : '#ffffff');
+                    localStorage.setItem('bgColor', selectedColor);
+                    toggleThemeClasses(selectedColor !== '#ffffff');
+                });
             });
         });
 
@@ -255,6 +316,25 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
             var id = $(this).data('id');
             var puntos = $(this).data('puntos');
             window.location.href = 'canjear_premio.php?id=' + id + '&puntos=' + puntos;
+        });
+
+        $('#canjearBeneficioModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var id = button.data('id');
+            var nombre = button.data('nombre');
+            var puntos = button.data('puntos');
+
+            var modal = $(this);
+            modal.find('#beneficioNombre').text(nombre);
+            modal.find('#beneficioPuntos').text(puntos);
+            modal.find('#confirmarCanjeBeneficio').data('id', id);
+            modal.find('#confirmarCanjeBeneficio').data('puntos', puntos);
+        });
+
+        $('#confirmarCanjeBeneficio').on('click', function () {
+            var id = $(this).data('id');
+            var puntos = $(this).data('puntos');
+            window.location.href = 'canjear_beneficio.php?id=' + id + '&puntos=' + puntos;
         });
 
         // Búsqueda en premios
